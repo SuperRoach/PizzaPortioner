@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My Extension Popup</title>
+    <style>
+        /* Ensure the popup is of a fixed size (you can adjust as needed) */
+        body {
+            width: 300px;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 8px;
+        }
+
+        button {
+            margin: 5px 0;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+        }
+
+        label {
+            padding-right: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Pizza portioner</h2>
+    <p>Let's figure out the perfect number of pizzas for you to order</p>
+    <form id="pizzaForm">
+        <div class="form-group">
+            <label for="adults">Adults</label><input id="adults" name="adults" type="number" min="0" max="40" step="1">
+        </div>
+        <div class="form-group">
+            <label for="vegos">Vegetarians</label><input id="vegos" placeholder="inclusive of adults" name="vegos"
+                type="number" min="0" max="40" step="1">
+        </div>
+        <div class="form-group">
+            <label for="kids">Kids</label><input id="kids" name="kids" type="number" min="0" max="40" step="1">
+        </div>
+        <div class="form-group">
+            <label for="hungry">Bloody hungry? </label>
+            <input type="checkbox" name="hungry" id="hungry">
+        </div>
+    </form>
+    <button id="doSomething">Lets do this</button>
+    <div class="orderWrapper">
+        <div id="pizzaCountText">You should order some pizzas.</div>
+        <ul>
+            <div id="pizzaTypeBreakdown"></div>
+        </ul>
+    </div>
+    <script src="popup.js"></script>
+</body>
+
+</html>
