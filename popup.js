@@ -1,5 +1,7 @@
 //@ts-check
 
+import { hungryBump, pizzaSlices, slicesPerAdult, slicesPerKid } from "./consts.js";
+
 /**
  * Description
  * @param {number} adults
@@ -9,11 +11,6 @@
  * @returns {object}
  */
 function calculatePizzasNeeded(adults, kids, slicesPerPizza = 10, hungry = false) {
-    // Average slices consumed
-    const slicesPerAdult = 3;
-    const slicesPerKid = 1.5;
-
-    const hungryBump = 2;
 
     const calculatedSlicesPerAdult = hungry ? slicesPerAdult * hungryBump : slicesPerAdult;
     const calculatedSlicesPerKid = hungry ? slicesPerKid * hungryBump : slicesPerKid;
@@ -32,28 +29,32 @@ function calculatePizzasNeeded(adults, kids, slicesPerPizza = 10, hungry = false
  * @param {number} totalPizzas
  * @returns {object}
  */
-function pizzaTypeBreakdown(totalPizzas) {
+function pizzaTypeBreakdown(totalPizzas, vego = 0) {
+
+    const vegetarianPizzasNeeded = Math.ceil((vego * slicesPerAdult) / pizzaSlices);
+
     const plain = Math.ceil(totalPizzas * 0.50) || 0;
     const popular = Math.ceil(totalPizzas * 0.30) || 0;
-    const vegetarian = totalPizzas - plain - popular;
+    // const vegetarianStock = Math.max(0, (totalPizzas - plain - popular));
+    const vegetarianStock = Math.max(vegetarianPizzasNeeded, totalPizzas - plain - popular);
+
+    if (vegetarianStock > (totalPizzas * 0.20)) {
+        return {
+            plain: totalPizzas - popular - vegetarianStock,
+            popular: popular,
+            vegetarian: vegetarianStock
+        };
+    }
+
 
     return {
         plain: plain,
         popular: popular,
-        vegetarian: vegetarian
+        vegetarian: vegetarianStock
     };
 }
-
-// Example usage:
-const adults = 15;
-const kids = 5;
-const largePizzaSlices = 10; // For a large pizza
-
-// console.log(`You'll need ${calculatePizzasNeeded(adults, kids, largePizzaSlices)} large pizzas.`);
-
-
 function getFormData() {
-    let form = document.getElementById('pizzaForm');
+    const form = document.getElementById('pizzaForm');
 
     // Retrieving the values from within the form context
     // var adultsValue = parseInt(form.elements['adults'].value, 10);
@@ -73,28 +74,60 @@ function getFormData() {
     return formData
 }
 
-document.getElementById('doSomething').addEventListener('click', function () {
-    // alert('Button was clicked!');
+function updatePizzaDisplay() {
     const { adults, kids, vegos, hungry } = getFormData();
     console.info(adults, kids, hungry);
 
     const pizzaCountText = document.querySelector('#pizzaCountText');
-    const pizzaTypeBreakdown = document.querySelector('#pizzaTypeBreakdown');
+    const pizzaTypesBreakdown = document.querySelector('#pizzaTypesBreakdown');
 
-    const pizzasNeeded = calculatePizzasNeeded(adults, kids, largePizzaSlices, hungry)
+    const pizzasNeeded = calculatePizzasNeeded(adults, kids, pizzaSlices, hungry)
 
-    const resultString = `You'll need ${pizzasNeeded} large pizzas.`
+    const resultString = `You'll want ${pizzasNeeded} large pizzas.`
     if (pizzaCountText) {
         pizzaCountText.textContent = resultString;
     }
-    const { plain, popular, vegetarian } = pizzaTypeBreakdown(pizzasNeeded);
+    const { plain, popular, vegetarian } = pizzaTypeBreakdown(pizzasNeeded, vegos);
 
-    if (pizzaTypeBreakdown) {
-        pizzaTypeBreakdown.innerHTML += `<li class="pizzaBreakdown">${plain} Plain pizzas</li>`;
-        pizzaTypeBreakdown.innerHTML += `<li class="pizzaBreakdown">${popular} Popular pizzas</li>`;
-        pizzaTypeBreakdown.innerHTML += `<li class="pizzaBreakdown">${vegetarian} Vego pizzas</li>`;
+    if (pizzaTypesBreakdown) {
+        pizzaTypesBreakdown.innerHTML = "";
+        pizzaTypesBreakdown.innerHTML += `<li class="pizzaBreakdown"> ${plain} Plain pizzas</li>`;
+        pizzaTypesBreakdown.innerHTML += `<li class="pizzaBreakdown"> ${popular} Popular pizzas</li>`;
+        pizzaTypesBreakdown.innerHTML += `<li class="pizzaBreakdown"> ${vegetarian} Vego pizzas</li>`;
 
     }
+}
+
+async function getTab() {
+    let queryOptions = { active: true, currentWindow: true };
+    let tabs = await chrome.tabs.query(queryOptions);
+    return tabs[0].url;
+}
+
+document.getElementById('adults').addEventListener('change', updatePizzaDisplay);
+document.getElementById('vegos').addEventListener('change', updatePizzaDisplay);
+document.getElementById('kids').addEventListener('change', updatePizzaDisplay);
+document.getElementById('hungry').addEventListener('change', updatePizzaDisplay);
+
+const tab = await getTab()
+const pizzaLogo = document.querySelector('#pizzaLogo');
+if (pizzaLogo) {
+    pizzaLogo.innerHTML = "";
+    if (tab.includes("dominos")) {
+        pizzaLogo.innerHTML = `<img src="images/CMYK_Blue_Type_Tile_Only.png"></img>`;    
+    }
+}
+
+document.getElementById('doSomething').addEventListener('click', async function async() {
+    // alert('Button was clicked!');
+    updatePizzaDisplay()
+
+
+
+    console.log("now what? TODO: check the current website", tab)
+    // TODO: Make an array matcher here instead
+
+
 
 
 
